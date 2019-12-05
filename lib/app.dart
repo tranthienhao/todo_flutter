@@ -30,14 +30,10 @@ class _TodoAppState extends State<TodoApp> {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
         brightness: brightness.getTheme() == "Light"
             ? Brightness.light
             : Brightness.dark,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blue,
       ),
       initialRoute: "/",
       routes: Routes.getAll(),

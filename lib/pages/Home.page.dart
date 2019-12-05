@@ -13,9 +13,24 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   var brightness = Prefs.singleton();
+  var taskList = [];
+
+  void createTask(task) {
+    setState(() {
+      taskList.add(task);
+    });
+  }
+
+  void removeTask(task) {
+    setState(() {
+      taskList.remove(task);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
+    var screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
         key: scaffoldKey,
         body: CustomScrollView(
@@ -29,31 +44,29 @@ class _HomePageState extends State<HomePage> {
                     scaffoldKey.currentState.openDrawer();
                   },
                   icon: Icon(Icons.menu)),
-              // bottom: PreferredSize(
-              //     child: Container(
-              //       color: Colors.red,
-              //       alignment: Alignment.topLeft,
-              //       child: Text(widget.title),
-              //     ),
-              //     preferredSize: Size.fromHeight(10.0)),
+              flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                alignment: Alignment.bottomRight,
+                padding: EdgeInsets.only(bottom: 16, right: 16),
+                child: Image.network(
+                  "https://cdn3.iconfinder.com/data/icons/round-icons-vol-1-2/120/checklist-512.png",
+                  width: screenWidth / 2,
+                  height: screenWidth / 2,
+                ),
+              )),
             ),
             SliverList(
-              delegate: SliverChildListDelegate([
-                TodoItem(
-                  item: 12,
-                ),
-                TodoItem(
-                  item: 12,
-                ),
-                TodoItem(
-                  item: 12,
-                ),
-              ]),
+              delegate: SliverChildListDelegate(
+                taskList
+                    .map((task) => TodoItem(item: task, onDone: removeTask))
+                    .toList(),
+              ),
             )
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => Navigator.pushNamed(context, "/create"),
+          onPressed: () =>
+              Navigator.pushNamed(context, "/create", arguments: createTask),
           child: Icon(Icons.add),
         ),
         drawer: SizedBox(
@@ -81,11 +94,26 @@ class _HomePageState extends State<HomePage> {
 }
 
 class TodoItem extends StatelessWidget {
-  const TodoItem({Key key, this.item}) : super(key: key);
+  const TodoItem({Key key, this.item, this.onDone}) : super(key: key);
   final item;
+  final Function onDone;
 
   @override
   Widget build(BuildContext context) {
+    Color priorityColor;
+    switch (item['priority']) {
+      case "High":
+        priorityColor = Colors.red;
+        break;
+      case "Medium":
+        priorityColor = Colors.orange;
+        break;
+      case "Low":
+        priorityColor = Colors.blue;
+        break;
+      default:
+        priorityColor = Colors.orange;
+    }
     return Container(
         padding: EdgeInsets.only(right: 16),
         margin: EdgeInsets.only(top: 16),
@@ -106,30 +134,30 @@ class TodoItem extends StatelessWidget {
                           borderRadius: BorderRadius.only(
                               bottomRight: Radius.circular(16)),
                           child: Container(
-                            color: Colors.yellow,
+                            color: priorityColor,
                             padding: EdgeInsets.symmetric(
                                 vertical: 4, horizontal: 24),
                             child: Text(
-                              "medium",
+                              item["priority"] ?? "Medium",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                           ),
                         ),
                         Container(
-                          padding: EdgeInsets.only(
-                              top: 8, bottom: 16, left: 16, right: 16),
+                          padding: EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                "title",
+                                item["title"] ?? '',
+                                maxLines: 1,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 32),
                               ),
                               Text(
-                                "subtitle",
-                                maxLines: 1,
+                                item["description"] ?? '',
+                                maxLines: 2,
                               ),
                             ],
                           ),
@@ -139,21 +167,23 @@ class TodoItem extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  right: 8,
-                  child: Chip(
-                    backgroundColor: Theme.of(context).cardColor,
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text("Done "),
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 16,
-                        )
-                      ],
-                    ),
-                  ),
-                )
+                    right: 0,
+                    child: FlatButton(
+                      onPressed: () => onDone(item),
+                      child: Chip(
+                        backgroundColor: Theme.of(context).cardColor,
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text("Done "),
+                            Icon(
+                              Icons.check_circle_outline,
+                              size: 16,
+                            )
+                          ],
+                        ),
+                      ),
+                    ))
               ],
             )));
   }

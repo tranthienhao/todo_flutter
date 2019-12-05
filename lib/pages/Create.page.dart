@@ -10,9 +10,35 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePageState extends State<CreatePage> {
+  String title, description, priority;
+
+  void onTitleChanged(text) {
+    setState(() {
+      title = text;
+    });
+  }
+
+  void onDescriptionChanged(text) {
+    setState(() {
+      description = text;
+    });
+  }
+
+  void setPriority(text) {
+    setState(() {
+      priority = text;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
+    Function onCreate = ModalRoute.of(context).settings.arguments;
+    Map<String, dynamic> task = {
+      "title": title,
+      "description": description,
+      "priority": priority
+    };
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
@@ -39,6 +65,7 @@ class _CreatePageState extends State<CreatePage> {
                                   fontSize: 24, fontWeight: FontWeight.bold),
                             ),
                             TextField(
+                                onChanged: onTitleChanged,
                                 decoration: InputDecoration(
                                     filled: true,
                                     fillColor:
@@ -54,16 +81,17 @@ class _CreatePageState extends State<CreatePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              "Content",
+                              "Description",
                               style: TextStyle(
                                   fontSize: 24, fontWeight: FontWeight.bold),
                             ),
                             TextField(
+                                onChanged: onDescriptionChanged,
                                 decoration: InputDecoration(
                                     filled: true,
                                     fillColor:
                                         Theme.of(context).primaryColorLight,
-                                    hintText: "Do something...",
+                                    hintText: "Some details...",
                                     border: OutlineInputBorder())),
                           ],
                         ),
@@ -83,29 +111,49 @@ class _CreatePageState extends State<CreatePage> {
                                 alignment: WrapAlignment.spaceBetween,
                                 children: <Widget>[
                                   ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Container(
-                                        width: 60,
-                                        height: 30,
-                                        color: Colors.red,
-                                        child: Icon(Icons.check_circle_outline),
-                                      )),
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: GestureDetector(
+                                        onTap: () => setPriority("High"),
+                                        child: Container(
+                                          width: 80,
+                                          height: 40,
+                                          color: Colors.red,
+                                          child: priority == "High"
+                                              ? Icon(Icons.check_circle_outline,
+                                                  color: Colors.black)
+                                              : null,
+                                        )),
+                                  ),
                                   ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Container(
-                                        width: 60,
-                                        height: 30,
-                                        color: Colors.orange,
-                                        child: Icon(Icons.check_circle_outline),
-                                      )),
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: GestureDetector(
+                                        onTap: () => setPriority("Medium"),
+                                        child: Container(
+                                          width: 80,
+                                          height: 40,
+                                          color: Colors.orange,
+                                          child: priority == "Medium"
+                                              ? Icon(Icons.check_circle_outline,
+                                                  color: Colors.black)
+                                              : null,
+                                        )),
+                                  ),
                                   ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Container(
-                                        width: 60,
-                                        height: 30,
-                                        color: Colors.blue,
-                                        child: Icon(Icons.check_circle_outline),
-                                      )),
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: GestureDetector(
+                                        onTap: () => setPriority("Low"),
+                                        child: Container(
+                                          width: 80,
+                                          height: 40,
+                                          color: Colors.blue,
+                                          child: priority == "Low"
+                                              ? Icon(
+                                                  Icons.check_circle_outline,
+                                                  color: Colors.black,
+                                                )
+                                              : null,
+                                        )),
+                                  ),
                                 ],
                               ),
                             ),
@@ -119,11 +167,39 @@ class _CreatePageState extends State<CreatePage> {
                           borderRadius: BorderRadius.circular(8),
                           child: FlatButton(
                             color: Colors.green,
-                            onPressed: () => {},
-                            child: Text(
-                              "Submit",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            onPressed: onCreate is Function
+                                ? () {
+                                    if (title == null || priority == null) {
+                                      showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                                title: Text("Error"),
+                                                content: Text(
+                                                    "Please fill the title and select priority!"),
+                                                actions: <Widget>[
+                                                  FlatButton(
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                    child: Text("OK"),
+                                                  )
+                                                ]);
+                                          });
+                                    } else {
+                                      Navigator.pop(context);
+                                      return onCreate(task);
+                                    }
+                                  }
+                                : () => {},
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Text(
+                                "SUBMIT",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ))
                     ],
