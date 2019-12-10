@@ -31,5 +31,5 @@ class RemoveTask extends TasksEvent {
   List<Object> get props => [task];
 
   @override
-  String toString() => 'DeleteTask { task: $task }';
+  String toString() => 'RemoveTask { task: $task }';
 }

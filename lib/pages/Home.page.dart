@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:todo_flutter/bloc/task.bloc.dart';
 import 'package:todo_flutter/blocs/blocs.dart';
 import 'package:todo_flutter/blocs/task_bloc.dart';
 import 'package:todo_flutter/blocs/task_state.dart';
@@ -24,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
     var screenWidth = MediaQuery.of(context).size.width;
-    final TasksBloc tasksBloc = BlocProvider.of<TasksBloc>(context);
+
     return Scaffold(
         key: scaffoldKey,
         body: CustomScrollView(
@@ -54,23 +53,19 @@ class _HomePageState extends State<HomePage> {
                 if (state is TasksLoadSuccess) {
                   List<Task> taskList = state.tasks ?? [];
                   return SliverList(
-                    delegate: SliverChildListDelegate(taskList
-                        .map((task) => TodoItem(item: task, onDone: () {}))
-                        .toList()),
+                    delegate: SliverChildListDelegate(
+                        taskList.map((task) => TodoItem(item: task)).toList()),
                   );
                 }
                 return SliverList(
-                  delegate: SliverChildListDelegate([]
-                      .map((task) => TodoItem(item: task, onDone: () {}))
-                      .toList()),
+                  delegate: SliverChildListDelegate([]),
                 );
               },
             ),
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => Navigator.pushNamed(context, "/create",
-              arguments: (task) => tasksBloc.add(CreateTask(task))),
+          onPressed: () => Navigator.pushNamed(context, "/create"),
           child: Icon(Icons.add),
         ),
         drawer: SizedBox(
@@ -98,12 +93,13 @@ class _HomePageState extends State<HomePage> {
 }
 
 class TodoItem extends StatelessWidget {
-  const TodoItem({Key key, this.item, this.onDone}) : super(key: key);
+  const TodoItem({Key key, this.item}) : super(key: key);
   final Task item;
-  final Function onDone;
 
   @override
   Widget build(BuildContext context) {
+    final TasksBloc tasksBloc = BlocProvider.of<TasksBloc>(context);
+
     Color priorityColor;
     switch (item.priority) {
       case "High":
@@ -173,7 +169,9 @@ class TodoItem extends StatelessWidget {
                 Positioned(
                     right: 0,
                     child: FlatButton(
-                      onPressed: () => onDone(item),
+                      onPressed: () {
+                        tasksBloc.add(RemoveTask(item));
+                      },
                       child: Chip(
                         backgroundColor: Theme.of(context).cardColor,
                         label: Row(

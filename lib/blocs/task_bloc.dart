@@ -15,6 +15,11 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
   }
 
   @override
+  Future<void> close() {
+    return super.close();
+  }
+
+  @override
   void onError(Object error, StackTrace stacktrace) {
     super.onError(error, stacktrace);
     print('ℹ️ === error: $error');

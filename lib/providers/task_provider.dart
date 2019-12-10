@@ -8,10 +8,14 @@ const TASK_KEY = 'TASK_KEY';
 class TaskProvider {
   loadTask() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var tasksJson = JsonDecoder().convert(prefs.getString(TASK_KEY));
-    List<Task> tasks =
-        tasksJson['tasks'].map<Task>((task) => Task.fromJson(task)).toList();
-    return tasks;
+    var localTask = prefs.getString(TASK_KEY);
+    if (localTask != null) {
+      var tasksJson = JsonDecoder().convert(localTask);
+      List<Task> tasks =
+          tasksJson['tasks'].map<Task>((task) => Task.fromJson(task)).toList();
+      return tasks;
+    }
+    return <Task>[];
   }
 
   void saveTask(List<Task> tasks) async {
@@ -19,7 +23,6 @@ class TaskProvider {
     var tasksJson = JsonEncoder().convert({
       'tasks': tasks.map((task) => task.toJson()).toList(),
     });
-    print('ℹ️ === tasksJson: $tasksJson');
     prefs.setString(TASK_KEY, tasksJson);
   }
 }
