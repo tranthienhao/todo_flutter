@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_flutter/bloc/task.bloc.dart';
+import 'package:todo_flutter/blocs/blocs.dart';
+import 'package:todo_flutter/blocs/task_bloc.dart';
+import 'package:todo_flutter/blocs/task_state.dart';
+import 'package:todo_flutter/models/models.dart';
 import 'package:todo_flutter/themes/brightness.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,24 +19,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   var brightness = Prefs.singleton();
-  var taskList = [];
-
-  void createTask(task) {
-    setState(() {
-      taskList.add(task);
-    });
-  }
-
-  void removeTask(task) {
-    setState(() {
-      taskList.remove(task);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
     var screenWidth = MediaQuery.of(context).size.width;
+    final TasksBloc tasksBloc = BlocProvider.of<TasksBloc>(context);
     return Scaffold(
         key: scaffoldKey,
         body: CustomScrollView(
@@ -55,18 +49,28 @@ class _HomePageState extends State<HomePage> {
                 ),
               )),
             ),
-            SliverList(
-              delegate: SliverChildListDelegate(
-                taskList
-                    .map((task) => TodoItem(item: task, onDone: removeTask))
-                    .toList(),
-              ),
-            )
+            BlocBuilder<TasksBloc, TasksState>(
+              builder: (context, state) {
+                if (state is TasksLoadSuccess) {
+                  List<Task> taskList = state.tasks ?? [];
+                  return SliverList(
+                    delegate: SliverChildListDelegate(taskList
+                        .map((task) => TodoItem(item: task, onDone: () {}))
+                        .toList()),
+                  );
+                }
+                return SliverList(
+                  delegate: SliverChildListDelegate([]
+                      .map((task) => TodoItem(item: task, onDone: () {}))
+                      .toList()),
+                );
+              },
+            ),
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () =>
-              Navigator.pushNamed(context, "/create", arguments: createTask),
+          onPressed: () => Navigator.pushNamed(context, "/create",
+              arguments: (task) => tasksBloc.add(CreateTask(task))),
           child: Icon(Icons.add),
         ),
         drawer: SizedBox(
@@ -95,13 +99,13 @@ class _HomePageState extends State<HomePage> {
 
 class TodoItem extends StatelessWidget {
   const TodoItem({Key key, this.item, this.onDone}) : super(key: key);
-  final item;
+  final Task item;
   final Function onDone;
 
   @override
   Widget build(BuildContext context) {
     Color priorityColor;
-    switch (item['priority']) {
+    switch (item.priority) {
       case "High":
         priorityColor = Colors.red;
         break;
@@ -138,7 +142,7 @@ class TodoItem extends StatelessWidget {
                             padding: EdgeInsets.symmetric(
                                 vertical: 4, horizontal: 24),
                             child: Text(
-                              item["priority"] ?? "Medium",
+                              item.priority ?? "Medium",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 12),
                             ),
@@ -150,13 +154,13 @@ class TodoItem extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                item["title"] ?? '',
+                                item.title ?? '',
                                 maxLines: 1,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 32),
                               ),
                               Text(
-                                item["description"] ?? '',
+                                item.description ?? '',
                                 maxLines: 2,
                               ),
                             ],

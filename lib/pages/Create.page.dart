@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_flutter/blocs/blocs.dart';
+import 'package:todo_flutter/models/task.modal.dart';
 
 class CreatePage extends StatefulWidget {
   CreatePage({Key key, this.title}) : super(key: key);
@@ -33,12 +36,8 @@ class _CreatePageState extends State<CreatePage> {
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
-    Function onCreate = ModalRoute.of(context).settings.arguments;
-    Map<String, dynamic> task = {
-      "title": title,
-      "description": description,
-      "priority": priority
-    };
+    Task task = Task(title, description, priority);
+
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
@@ -167,32 +166,30 @@ class _CreatePageState extends State<CreatePage> {
                           borderRadius: BorderRadius.circular(8),
                           child: FlatButton(
                             color: Colors.green,
-                            onPressed: onCreate is Function
-                                ? () {
-                                    if (title == null || priority == null) {
-                                      showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                                title: Text("Error"),
-                                                content: Text(
-                                                    "Please fill the title and select priority!"),
-                                                actions: <Widget>[
-                                                  FlatButton(
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                    child: Text("OK"),
-                                                  )
-                                                ]);
-                                          });
-                                    } else {
-                                      Navigator.pop(context);
-                                      return onCreate(task);
-                                    }
-                                  }
-                                : () => {},
+                            onPressed: () {
+                              if (title == null || priority == null) {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                          title: Text("Error"),
+                                          content: Text(
+                                              "Please fill the title and select priority!"),
+                                          actions: <Widget>[
+                                            FlatButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text("OK"),
+                                            )
+                                          ]);
+                                    });
+                              } else {
+                                Navigator.pop(context);
+                                return BlocProvider.of<TasksBloc>(context)
+                                    .add(CreateTask(task));
+                              }
+                            },
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 16),
                               child: Text(
