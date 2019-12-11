@@ -4,7 +4,6 @@ import 'package:todo_flutter/blocs/blocs.dart';
 import 'package:todo_flutter/blocs/task_bloc.dart';
 import 'package:todo_flutter/blocs/task_state.dart';
 import 'package:todo_flutter/models/models.dart';
-import 'package:todo_flutter/themes/brightness.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key, this.title}) : super(key: key);
@@ -17,13 +16,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-  var brightness = Prefs.singleton();
 
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
     var screenWidth = MediaQuery.of(context).size.width;
-
+    final AppBloc appBloc = BlocProvider.of<AppBloc>(context);
     return Scaffold(
         key: scaffoldKey,
         body: CustomScrollView(
@@ -41,8 +39,8 @@ class _HomePageState extends State<HomePage> {
                   background: Container(
                 alignment: Alignment.bottomRight,
                 padding: EdgeInsets.only(bottom: 16, right: 16),
-                child: Image.network(
-                  "https://cdn3.iconfinder.com/data/icons/round-icons-vol-1-2/120/checklist-512.png",
+                child: Image.asset(
+                  'assets/images/checkList.png',
                   width: screenWidth / 2,
                   height: screenWidth / 2,
                 ),
@@ -74,13 +72,12 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               alignment: Alignment.bottomCenter,
               color: Theme.of(context).backgroundColor,
-              child: GestureDetector(
-                onTap: () {
-                  return brightness.setTheme(
-                      brightness.getTheme() == 'Light' ? 'Dark' : 'Light');
+              child: RaisedButton(
+                onPressed: () {
+                  appBloc.add(ToggleDarkMode());
                 },
+                color: Colors.orange,
                 child: Container(
-                  color: Colors.orange,
                   width: 100,
                   height: 100,
                   child: Center(child: Icon(Icons.brightness_high)),
@@ -98,7 +95,7 @@ class TodoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TasksBloc tasksBloc = BlocProvider.of<TasksBloc>(context);
+    TasksBloc tasksBloc = BlocProvider.of<TasksBloc>(context);
 
     Color priorityColor;
     switch (item.priority) {

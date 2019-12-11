@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_flutter/blocs/blocs.dart';
 import 'package:todo_flutter/routes/Routes.dart';
-import 'package:todo_flutter/themes/brightness.dart';
 
 class TodoApp extends StatefulWidget {
   TodoApp({Key key, this.title}) : super(key: key);
@@ -12,31 +13,20 @@ class TodoApp extends StatefulWidget {
 }
 
 class _TodoAppState extends State<TodoApp> {
-  var brightness = Prefs.singleton();
-  String theme;
-
-  @override
-  void initState() {
-    super.initState();
-    brightness.addListenerForPref('AppTheme', (key, value) {
-      setState(() {
-        theme = value;
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        brightness: brightness.getTheme() == "Light"
-            ? Brightness.light
-            : Brightness.dark,
-      ),
-      initialRoute: "/",
-      routes: Routes.getAll(),
-    );
+    return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
+      return MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+          brightness: state is AppLoadSuccess && state.darkMode == true
+              ? Brightness.dark
+              : Brightness.light,
+        ),
+        initialRoute: "/",
+        routes: Routes.getAll(),
+      );
+    });
   }
 }
